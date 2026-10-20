@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marshall Ahmad — Concert Stage Visualization</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="intro">
+      <div class="intro-card">
+        <h1>Marshall Ahmad</h1>
+        <p>Concert Stage Visualization</p>
+        <button id="enter" disabled>Loading models…</button>
+      </div>
+    </div>
+
+    <div id="help"></div>
+
+    <div id="credits" hidden>
+      <button class="close" aria-label="Close">×</button>
+      <h2>Model credits</h2>
+      <ul id="credits-list"></ul>
+      <p class="note">Models from Poly Pizza. CC-BY 3.0 models require attribution; CC0 models are listed for courtesy.</p>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

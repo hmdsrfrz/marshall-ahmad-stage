@@ -1,0 +1,41 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #050403; overflow: hidden; font-family: system-ui, -apple-system, Segoe UI, sans-serif; color: #f3e6cf; }
+#app, #app canvas { display: block; width: 100%; height: 100%; }
+
+#intro {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: radial-gradient(ellipse at center, rgba(40, 26, 10, 0.75), rgba(5, 4, 3, 0.95));
+  z-index: 10; transition: opacity 0.6s;
+}
+#intro.hidden { opacity: 0; pointer-events: none; }
+.intro-card { text-align: center; }
+.intro-card h1 { font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase; margin: 0 0 0.4em; font-size: clamp(1.4rem, 4vw, 2.6rem); }
+.intro-card p { opacity: 0.7; margin: 0 0 2em; }
+#enter {
+  font: inherit; font-size: 1rem; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.9em 2.4em; border: 1px solid #f6c56b; background: transparent; color: #f6c56b;
+  cursor: pointer; transition: background 0.2s, color 0.2s;
+}
+#enter:hover:not(:disabled) { background: #f6c56b; color: #120c05; }
+#enter:disabled { opacity: 0.5; cursor: wait; }
+
+#help {
+  position: fixed; left: 16px; bottom: 16px; z-index: 5;
+  font-size: 12px; line-height: 1.6; padding: 10px 14px;
+  background: rgba(10, 7, 4, 0.7); border: 1px solid rgba(246, 197, 107, 0.25); border-radius: 6px;
+  pointer-events: none; max-width: calc(100vw - 32px);
+}
+#help b { color: #f6c56b; font-weight: 600; }
+
+#credits {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20;
+  width: min(520px, calc(100vw - 32px)); max-height: 80vh; overflow: auto;
+  background: rgba(14, 10, 6, 0.96); border: 1px solid rgba(246, 197, 107, 0.4); border-radius: 8px; padding: 18px 22px;
+  font-size: 13px;
+}
+#credits h2 { margin: 0 0 10px; font-weight: 400; letter-spacing: 0.1em; }
+#credits ul { padding-left: 18px; margin: 0; }
+#credits li { margin: 4px 0; }
+#credits a { color: #f6c56b; }
+#credits .note { opacity: 0.6; font-size: 12px; }
+#credits .close { position: absolute; right: 10px; top: 6px; background: none; border: 0; color: inherit; font-size: 22px; cursor: pointer; }
