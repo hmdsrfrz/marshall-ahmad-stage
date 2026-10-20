@@ -13,7 +13,8 @@ Reference the design was based on:
 
 ## Features
 
-- **Tarp box** rotated as a rigid body (default 8°, back raised) with glowing LED edges
+- **Tarp box** rotated as a rigid body (default 8°, back raised) with glowing LED edges, open at the front
+- **Plastic sheeting** — overlapping, layered strips settled by a cloth simulation (in a Web Worker), with crease lines and an optional gentle sway
 - **Containers** standing on end, open toward the audience, lit with red light bars
 - **Concert rig** — 8 moving heads on two roof trusses cycling fan / ballyhoo / cross / singer patterns
 - **Sound-reactive** under-stage glow and beam intensity, driven by a Web Audio analyser
@@ -67,6 +68,9 @@ index.html          page shell, intro screen, credits dialog
 public/models/      downloaded GLB models (see credits)
 src/main.js         renderer, post-processing, control panel, render loop
 src/set.js          tarp box, stage riser, floor reflection, haze, backlight
+src/tarp.js         Verlet cloth sheet for the plastic tarp strips
+src/tarpWorker.js   settles tarp sheets off the main thread
+src/noise.js        seeded random + noise helpers
 src/props.js        model loading/fitting, containers, car, performers, light rig
 src/navigation.js   orbit / walk / transform controls, layout persistence
 src/audio.js        synthesized beat, song playback, frequency analysis

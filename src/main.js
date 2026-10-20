@@ -45,6 +45,7 @@ composer.addPass(new OutputPass());
 const settings = {
   tilt: 8,
   tarpOpacity: 0.2,
+  tarpSway: true,
   led: 1.6,
   reactivity: 1,
   underColor: '#ffffff',
@@ -86,6 +87,7 @@ function applySettings() {
     pattern: settings.pattern,
     haze: settings.haze,
     led: settings.led,
+    tarpSway: settings.tarpSway,
   });
   scene.fog.density = 0.012 * settings.haze;
   bloom.strength = settings.bloom;
@@ -109,6 +111,7 @@ const fStage = gui.addFolder('Tarp box');
 fStage.add(settings, 'tilt', 0, 20, 0.5).name('Tilt (°)').onChange(onChange);
 fStage.add(settings, 'tarpOpacity', 0.02, 0.6, 0.01).name('Tarp opacity').onChange(onChange);
 fStage.add(settings, 'led', 0, 4, 0.05).name('LED frame').onChange(onChange);
+fStage.add(settings, 'tarpSway').name('Tarp sway').onChange(onChange);
 const fLight = gui.addFolder('Lighting');
 fLight.add(settings, 'reactivity', 0, 3, 0.05).name('Sound reactivity').onChange(onChange);
 fLight.addColor(settings, 'underColor').name('Under-stage color').onChange(onChange);
