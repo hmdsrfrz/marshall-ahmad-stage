@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { loadModels, movableRegistry } from '../../engine/models.js';
 import { buildWarehouse } from './warehouse.js';
 import { buildProps } from './props.js';
-import { buildCrowd } from './crowd.js';
+import { buildCrowd } from '../../engine/crowd.js';
+import { buildWarehouseRoom } from '../../engine/warehouse.js';
 
 const MODELS = {
   car: 'car.glb',
@@ -52,11 +53,13 @@ export default {
   id: 'mademen',
   title: 'MADE MEN',
   settingsKey: 'stageviz.mademen.settings.v1',
-  layoutKey: 'stageviz.mademen.layout.v1',
+  layoutKey: 'stageviz.mademen.layout.v2',
   credits: CREDITS,
   camera: { position: [0, 3.4, 25], target: [0, 4, 0] },
   defaults: {
     crowd: true,
+    warehouse: true,
+    warehouseLights: 1,
     plasticOpacity: 0.3,
     plasticSway: true,
     reactivity: 1,
@@ -67,6 +70,8 @@ export default {
     shadowSpot: 1,
     headlights: 1,
     fire: 1,
+    worklights: 1,
+    festoon: 1,
     haze: 1,
     bloom: 0.65,
     exposure: 0.9,
@@ -87,18 +92,22 @@ export default {
     const house = buildWarehouse(scene, gl, { quality });
     for (const m of house.movables) add(m.parent, m);
     const props = buildProps(scene, gl, { add });
-    const crowd = buildCrowd(scene, gl, { count: quality === 'high' ? 250 : 140, keepClear: [[-9.3, 5.7, 2.5], [9.3, 5.7, 2.4]] });
+    const room = buildWarehouseRoom(scene);
+    const crowd = buildCrowd(scene, { count: quality === 'high' ? 250 : 140, keepClear: [[-9.3, 5.7, 2.5], [9.3, 5.7, 2.4]] });
     const opts = {};
 
     return {
       movables,
       update(t, dt, levels) {
         house.update(t, dt, levels, opts);
+        room.update();
+        crowd.userData.update(t, levels, opts.reactivity);
         props.update(t, dt, levels, opts);
       },
       apply(s) {
         Object.assign(opts, s);
         crowd.visible = s.crowd;
+        room.apply(s);
         house.apply(s);
         scene.fog.density = 0.022 * s.haze;
         bloom.strength = s.bloom;
@@ -110,6 +119,8 @@ export default {
       gui(gui, s, onChange) {
         const fStage = gui.addFolder('MADE MEN stage');
         fStage.add(s, 'crowd').name('Show crowd').onChange(onChange);
+        fStage.add(s, 'warehouse').name('Show warehouse').onChange(onChange);
+        fStage.add(s, 'warehouseLights', 0, 3, 0.05).name('Warehouse lights').onChange(onChange);
         fStage.add(s, 'plasticOpacity', 0.05, 0.7, 0.01).name('Plastic opacity').onChange(onChange);
         fStage.add(s, 'plasticSway').name('Plastic sway').onChange(onChange);
         const fLight = gui.addFolder('Lighting');
@@ -121,6 +132,8 @@ export default {
         fLight.add(s, 'shadowSpot', 0, 3, 0.05).name('Shadow spotlight').onChange(onChange);
         fLight.add(s, 'headlights', 0, 3, 0.05).name('Car headlights').onChange(onChange);
         fLight.add(s, 'fire', 0, 3, 0.05).name('Fire barrels').onChange(onChange);
+        fLight.add(s, 'worklights', 0, 3, 0.05).name('Work lights').onChange(onChange);
+        fLight.add(s, 'festoon', 0, 3, 0.05).name('Festoon bulbs').onChange(onChange);
         fLight.add(s, 'haze', 0, 2.5, 0.05).name('Haze').onChange(onChange);
         fLight.add(s, 'bloom', 0, 2.5, 0.05).name('Bloom').onChange(onChange);
         fLight.add(s, 'exposure', 0.3, 2.5, 0.05).name('Exposure').onChange(onChange);

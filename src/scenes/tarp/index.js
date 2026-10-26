@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { buildSet } from './set.js';
 import { buildProps, CREDITS } from './props.js';
+import { buildCrowd } from '../../engine/crowd.js';
+import { buildWarehouseRoom } from '../../engine/warehouse.js';
 
 export default {
   id: 'tarp',
@@ -13,6 +15,9 @@ export default {
     tilt: 8,
     tarpOpacity: 0.2,
     tarpSway: true,
+    crowd: true,
+    warehouse: false,
+    warehouseLights: 1,
     led: 1.6,
     reactivity: 1,
     underColor: '#ffffff',
@@ -26,13 +31,15 @@ export default {
     exposure: 0.85,
   },
 
-  async build({ scene, renderer, bloom }) {
+  async build({ scene, renderer, bloom, quality }) {
     scene.background = new THREE.Color(0x040404);
     scene.fog = new THREE.FogExp2(0x080808, 0.012);
     scene.add(new THREE.HemisphereLight(0x5a5a5e, 0x080808, 0.2));
 
     const set = buildSet(scene, renderer);
     const props = await buildProps(scene, set);
+    const room = buildWarehouseRoom(scene);
+    const crowd = buildCrowd(scene, { count: quality === 'high' ? 220 : 120, area: { x: [-11, 11], z: [6.8, 19] }, rim: 0xd8dcff, seed: 8 });
     const opts = { containerColor: new THREE.Color() };
 
     return {
@@ -40,8 +47,12 @@ export default {
       update(t, dt, levels) {
         set.update(t, levels, opts);
         props.update(t, dt, levels, opts);
+        room.update();
+        crowd.userData.update(t, levels, opts.reactivity);
       },
       apply(s) {
+        crowd.visible = s.crowd;
+        room.apply(s);
         set.setTilt(s.tilt);
         set.setTarpOpacity(s.tarpOpacity);
         set.underColor.set(s.underColor);
@@ -66,6 +77,9 @@ export default {
         fStage.add(s, 'tarpOpacity', 0.02, 0.6, 0.01).name('Tarp opacity').onChange(onChange);
         fStage.add(s, 'led', 0, 4, 0.05).name('LED frame').onChange(onChange);
         fStage.add(s, 'tarpSway').name('Tarp sway').onChange(onChange);
+        fStage.add(s, 'crowd').name('Show crowd').onChange(onChange);
+        fStage.add(s, 'warehouse').name('Show warehouse').onChange(onChange);
+        fStage.add(s, 'warehouseLights', 0, 3, 0.05).name('Warehouse lights').onChange(onChange);
         const fLight = gui.addFolder('Lighting');
         fLight.add(s, 'reactivity', 0, 3, 0.05).name('Sound reactivity').onChange(onChange);
         fLight.addColor(s, 'underColor').name('Under-stage color').onChange(onChange);

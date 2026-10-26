@@ -149,16 +149,6 @@ export function concreteMaterial() {
   return new THREE.MeshStandardMaterial({ map, color: 0x7a8088, roughness: 0.7, metalness: 0.05, roughnessMap: repeatTexture(c, 14, 14, false) });
 }
 
-export function corrugatedMaterial(color = 0x1c2630) {
-  const [c, x] = canvas(256, 16);
-  const g = x.createLinearGradient(0, 0, 256, 0);
-  for (let i = 0; i <= 8; i++) g.addColorStop(i / 8, i % 2 ? '#202020' : '#e0e0e0');
-  x.fillStyle = g;
-  x.fillRect(0, 0, 256, 16);
-  const bump = repeatTexture(c, 12, 1, false);
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.6, bumpMap: bump, bumpScale: 3 });
-}
-
 export function pegboardMaterial() {
   const [c, x] = canvas(512, 512);
   x.fillStyle = '#6b4a2c';
@@ -260,4 +250,25 @@ export function fasciaTexture() {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
+}
+
+// Rough crate planks: horizontal boards with dark gaps, a framing border and a stencilled mark.
+export function crateMaterial() {
+  const [c, x] = canvas(256, 256);
+  const r = mulberry32(12);
+  for (let i = 0; i < 5; i++) {
+    const v = 105 + Math.floor(r() * 40);
+    x.fillStyle = `rgb(${v},${Math.floor(v * 0.74)},${Math.floor(v * 0.48)})`;
+    x.fillRect(0, i * 51, 256, 49);
+    x.fillStyle = 'rgba(40,25,12,0.25)';
+    for (let k = 0; k < 14; k++) x.fillRect(r() * 256, i * 51 + r() * 49, 30 + r() * 80, 1.5); // grain
+  }
+  x.strokeStyle = '#3a2615';
+  x.lineWidth = 22;
+  x.strokeRect(11, 11, 234, 234);
+  x.fillStyle = 'rgba(25,18,10,0.55)';
+  x.font = 'bold 34px monospace';
+  x.textAlign = 'center';
+  x.fillText('FRAGILE', 128, 140);
+  return new THREE.MeshStandardMaterial({ map: repeatTexture(c, 1, 1), roughness: 0.9 });
 }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '../../engine/noise.js';
 import { glowTexture, smokeTexture, beamCone, aimAt } from '../../engine/fx.js';
 import { fit, shadows, eachMaterial, movable, posePerson } from '../../engine/models.js';
-import { rustify, pegboardMaterial, tyreGeometry, rubberMaterial, rubberTints, qingqiTexture, fasciaTexture } from './materials.js';
+import { rustify, pegboardMaterial, tyreGeometry, rubberMaterial, rubberTints, qingqiTexture, fasciaTexture, crateMaterial } from './materials.js';
 import { STAGE_TOP, STAGE_FRONT, TRUSS, MIC_PIPE_Z } from './warehouse.js';
 
 const _box = new THREE.Box3();
@@ -180,8 +180,8 @@ export function buildProps(scene, gl, { add }) {
       h.glare.material.opacity = Math.min(1, o.headlights);
     }
   });
-  car.position.set(-3.6, STAGE_TOP, 0.2);
-  car.rotation.y = 1.05;
+  car.position.set(3.6, STAGE_TOP, 0.2);
+  car.rotation.y = -1.05;
   add(scene, car);
 
   // ---------------------------------------------------------------- chingchi (qingqi): red motorbike pulling an orange tubular cab
@@ -280,8 +280,8 @@ export function buildProps(scene, gl, { add }) {
   // seated playing height: the keys' top edge about 0.75 m above the deck
   keyboard.position.set(front - 0.95, floorY + Math.max(0.02, 0.75 - sizeOf(keyboard).y), 0);
   ching.add(keysPlayer, keyboard);
-  ching.position.set(-7.0, STAGE_TOP, 0.6);
-  ching.rotation.y = 2.25;
+  ching.position.set(7.0, STAGE_TOP, 0.6);
+  ching.rotation.y = Math.PI - 2.25;
   add(scene, ching);
 
   // ---------------------------------------------------------------- mechanic's corner: pegboard of tools
@@ -310,8 +310,8 @@ export function buildProps(scene, gl, { add }) {
     corner.add(tool);
   }
   shadows(corner);
-  corner.position.set(5.9, STAGE_TOP, -3.05);
-  corner.rotation.y = -0.25;
+  corner.position.set(-5.9, STAGE_TOP, -3.05);
+  corner.rotation.y = 0.25;
   add(scene, corner);
 
   // Tall red rolling tool chest: casters, a stack of deep drawers, a top box of thin drawers with
@@ -376,8 +376,8 @@ export function buildProps(scene, gl, { add }) {
     loose.rotation.y = rot;
     chest.add(shadows(loose));
   }
-  chest.position.set(7.6, STAGE_TOP, -1.6);
-  chest.rotation.y = -0.5;
+  chest.position.set(-7.6, STAGE_TOP, -1.6);
+  chest.rotation.y = 0.5;
   add(scene, chest);
 
   // ---------------------------------------------------------------- drummer on a tyre stack in front of the tool wall
@@ -389,8 +389,8 @@ export function buildProps(scene, gl, { add }) {
   const drummer = bandMember(gl, 'Man_Sitting');
   drummer.position.set(0, 0.0, -0.4);
   drums.add(kit, throne, drummer);
-  drums.position.set(4.1, STAGE_TOP, -1.2);
-  drums.rotation.y = -0.2;
+  drums.position.set(-4.1, STAGE_TOP, -1.2);
+  drums.rotation.y = 0.2;
   add(scene, drums);
 
   // ---------------------------------------------------------------- singer under the hanging vintage mic
@@ -420,8 +420,8 @@ export function buildProps(scene, gl, { add }) {
   );
   const fireTop = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.5, 0.15).multiplyScalar(3) });
   const groups = [
-    { id: 'barrels-left', at: [-8.3, STAGE_TOP, -2.4], items: [[0, 0, 0, true], [0.75, 0, 0.3, false], [0.2, 0, 0.85, false]] },
-    { id: 'barrels-right', at: [7.9, STAGE_TOP, 0.6], items: [[0, 0, 0, false], [0.7, 0, -0.35, true], [0.15, 0, 0.75, false]] },
+    { id: 'barrels-left', at: [-7.9, STAGE_TOP, 0.6], items: [[0, 0, 0, false], [-0.7, 0, -0.35, true], [-0.15, 0, 0.75, false]] },
+    { id: 'barrels-right', at: [8.3, STAGE_TOP, -2.4], items: [[0, 0, 0, true], [-0.75, 0, 0.3, false], [-0.2, 0, 0.85, false]] },
     { id: 'barrels-front-left', at: [-11.1, 0, 4.4], items: [[0, 0, 0, true], [0.8, 0, 0.4, false]] },
     { id: 'barrels-front-right', at: [11.0, 0, 4.2], items: [[0, 0, 0, false], [-0.8, 0, 0.5, true]] },
   ];
@@ -489,7 +489,7 @@ export function buildProps(scene, gl, { add }) {
   }
   // stacks along the back, a few with a tyre leaning against them
   const stacks = [];
-  for (const [x, n] of [[-7.7, 6], [-6.9, 4], [-2.7, 5], [2.3, 7], [6.95, 4], [7.75, 7]]) {
+  for (const [x, n] of [[7.7, 6], [6.9, 4], [2.7, 5], [-2.3, 7], [-6.95, 4], [-7.75, 7]]) {
     for (let i = 0; i < n; i++) stacks.push([[x + (r() - 0.5) * 0.08, 0.11 + i * 0.22, (r() - 0.5) * 0.08], [(r() - 0.5) * 0.08, r() * 6.28, (r() - 0.5) * 0.05]]);
     if (n > 4) stacks.push([[x + 0.45, 0.32, 0.3], [Math.PI / 2 - 0.35, 0.5 + r(), 0]]);
     flowerSpots.push([x, STAGE_TOP + n * 0.22 + 0.02, -3.25]);
@@ -501,12 +501,12 @@ export function buildProps(scene, gl, { add }) {
     tyreGeo,
     rubber,
     [
-      [[-5.6, 0.11, 4.9], [0, 0.3, 0]],
-      [[-5.55, 0.33, 4.92], [0.08, 1.2, 0]],
-      [[-2.3, 0.31, 4.45], [Math.PI / 2 - 0.25, 0.1, 0]],
-      [[3.1, 0.31, 5.3], [Math.PI / 2 + 0.6, 2.0, 0]],
-      [[6.0, 0.31, 4.45], [Math.PI / 2 - 0.3, -0.2, 0]],
-      [[6.85, 0.11, 5.45], [0, 0.7, 0]],
+      [[5.6, 0.11, 4.9], [0, -0.3, 0]],
+      [[5.55, 0.33, 4.92], [0.08, -1.2, 0]],
+      [[2.3, 0.31, 4.45], [Math.PI / 2 - 0.25, -0.1, 0]],
+      [[-3.1, 0.31, 5.3], [Math.PI / 2 + 0.6, -2.0, 0]],
+      [[-6.0, 0.31, 4.45], [Math.PI / 2 - 0.3, 0.2, 0]],
+      [[-6.85, 0.11, 5.45], [0, -0.7, 0]],
     ],
     'tyres-floor',
     'Tyres',
@@ -531,12 +531,210 @@ export function buildProps(scene, gl, { add }) {
   const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6), new THREE.MeshStandardMaterial({ color: 0x2a2622, metalness: 0.7 }));
   rope.position.y = 0.33 + 0.8;
   hanging.add(ht, bulb, bulbLight, bulbGlow, rope);
-  hanging.position.set(-5.2, TRUSS.y - 2.0, TRUSS.front);
+  hanging.position.set(5.2, TRUSS.y - 2.0, TRUSS.front);
   add(scene, hanging);
+
+  // ---------------------------------------------------------------- workshop clutter so the stage feels lived in
+  const crateMat = crateMaterial();
+  const metalDark = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.6, metalness: 0.3 });
+  const grilleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.95 });
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x6e5236, roughness: 0.95 });
+  const part = (geo, mat, x, y, z, parent) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.castShadow = m.receiveShadow = true;
+    parent.add(m);
+    return m;
+  };
+  const place = (g, x, z, yaw = 0) => {
+    g.position.set(x, STAGE_TOP, z);
+    g.rotation.y = yaw;
+    add(scene, g);
+  };
+  const pallet = (parent) => {
+    for (let i = 0; i < 5; i++) part(new THREE.BoxGeometry(1.2, 0.025, 0.14), woodMat, 0, 0.13, -0.4 + i * 0.2, parent);
+    for (const z of [-0.4, 0, 0.4]) part(new THREE.BoxGeometry(1.2, 0.1, 0.1), woodMat, 0, 0.065, z, parent);
+  };
+
+  // wedge monitors on the lip, sloped faces toward the singer
+  const wedgeShape = new THREE.Shape([new THREE.Vector2(-0.28, 0), new THREE.Vector2(0.28, 0), new THREE.Vector2(0.28, 0.38), new THREE.Vector2(-0.28, 0.12)]);
+  const wedgeGeo = new THREE.ExtrudeGeometry(wedgeShape, { depth: 0.62, bevelEnabled: false });
+  wedgeGeo.rotateY(-Math.PI / 2);
+  wedgeGeo.translate(0.31, 0, 0);
+  for (const [x, yaw] of [[-1.35, 0.35], [1.35, -0.35]]) {
+    const w = movable(`wedge-${x < 0 ? 'left' : 'right'}`, 'Wedge monitor');
+    part(wedgeGeo, metalDark, 0, 0, 0, w);
+    place(w, x, 3.35, yaw);
+  }
+
+  // guitar amp stacks: cab with a grille, head with a row of knobs and a red pilot light
+  const knobMat = new THREE.MeshStandardMaterial({ color: 0xc9a14a, metalness: 0.9, roughness: 0.3 });
+  const pilotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.15, 0.1).multiplyScalar(3) });
+  const amp = (id) => {
+    const g = movable(id, 'Amp stack');
+    part(new THREE.BoxGeometry(0.78, 0.78, 0.38), metalDark, 0, 0.39, 0, g);
+    part(new THREE.PlaneGeometry(0.66, 0.66), grilleMat, 0, 0.39, 0.191, g);
+    part(new THREE.BoxGeometry(0.78, 0.26, 0.34), metalDark, 0, 0.91, 0, g);
+    for (let i = 0; i < 6; i++) part(new THREE.CylinderGeometry(0.018, 0.018, 0.03, 8).rotateX(Math.PI / 2), knobMat, -0.27 + i * 0.11, 0.9, 0.18, g);
+    part(new THREE.SphereGeometry(0.015, 6, 4), pilotMat, 0.33, 0.96, 0.17, g);
+    return g;
+  };
+  place(amp('amp-left'), -5.7, 1.9, 0.45);
+  place(amp('amp-right'), 2.4, -2.6, -0.3);
+
+  // crates on pallets: a stack front-right with a spare wheel leaning on it, another behind the car
+  const crateStack = (id, boxes) => {
+    const g = movable(id, 'Crates');
+    pallet(g);
+    for (const [s, x, y, z, yaw] of boxes) part(new THREE.BoxGeometry(s, s, s), crateMat, x, 0.155 + y + s / 2, z, g).rotation.y = yaw;
+    return g;
+  };
+  const wheelRim = new THREE.MeshStandardMaterial({ color: 0x55534f, roughness: 0.45, metalness: 0.8 });
+  const spareWheel = (parent, x, z, lean, yaw) => {
+    const w = new THREE.Group();
+    w.add(new THREE.Mesh(tyreGeo, tyreMat), new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.16, 16), wheelRim));
+    shadows(w);
+    w.rotation.set(Math.PI / 2 - lean, yaw, 0, 'YXZ');
+    w.position.set(x, 0.33 - Math.sin(lean) * 0.1, z);
+    parent.add(w);
+  };
+  const crates1 = crateStack('crates-front', [[0.62, -0.25, 0, 0, 0.1], [0.55, 0.3, 0, 0.05, -0.15], [0.5, 0, 0.62, 0, 0.4]]);
+  spareWheel(crates1, 0.15, 0.62, 0.3, 0.2);
+  place(crates1, 4.9, 2.95, -0.2);
+  place(crateStack('crates-back', [[0.7, -0.22, 0, 0, 0], [0.62, 0.0, 0.7, 0.05, 0.3], [0.45, 0.35, 0, 0.1, -0.2]]), 5.2, -3.05, 0.1);
+
+  // stripped engine block on a pallet behind the car
+  const engine = movable('engine', 'Engine block');
+  pallet(engine);
+  const iron = rustify(new THREE.MeshStandardMaterial({ color: 0x3a3a3c, roughness: 0.6, metalness: 0.7 }), { amount: 0.55, scale: 5 });
+  part(new THREE.BoxGeometry(0.75, 0.42, 0.5), iron, 0, 0.36, 0, engine);
+  part(new THREE.BoxGeometry(0.7, 0.14, 0.32), iron, 0, 0.64, 0, engine);
+  for (const sz of [-1, 1]) part(new THREE.BoxGeometry(0.72, 0.1, 0.08), iron, 0, 0.6, sz * 0.26, engine).rotation.x = sz * 0.35;
+  part(new THREE.CylinderGeometry(0.13, 0.13, 0.05, 16).rotateZ(Math.PI / 2), iron, 0.4, 0.36, 0.05, engine);
+  part(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), metalDark, -0.2, 0.75, -0.15, engine).rotation.z = 1.2;
+  place(engine, 3.9, -2.35, 0.5);
+
+  // jerry cans, paint tins and a small red toolbox at the front corners
+  const tin = new THREE.MeshStandardMaterial({ color: 0x8a8f94, roughness: 0.45, metalness: 0.8 });
+  const odds = (id, cans, tins) => {
+    const g = movable(id, 'Cans');
+    for (const [x, z, yaw] of cans) {
+      const c = can.clone();
+      c.position.set(x, 0, z);
+      c.rotation.y = yaw;
+      g.add(c);
+    }
+    for (const [x, z] of tins) part(new THREE.CylinderGeometry(0.1, 0.1, 0.22, 12), tin, x, 0.11, z, g);
+    return g;
+  };
+  const oddsLeft = odds('odds-left', [[0, 0, 0.3], [0.45, 0.15, -0.5]], [[-0.35, 0.4], [-0.15, 0.62], [0.9, 0.5]]);
+  const toolbox = new THREE.Group();
+  part(new THREE.BoxGeometry(0.55, 0.22, 0.25), red, 0, 0.11, 0, toolbox);
+  part(new THREE.BoxGeometry(0.3, 0.03, 0.03), chromeMat, 0, 0.26, 0, toolbox);
+  toolbox.position.set(0.9, 0, -0.1);
+  toolbox.rotation.y = 0.4;
+  oddsLeft.add(toolbox);
+  place(oddsLeft, -7.2, 2.6, 0.2);
+  const oddsRight = odds('odds-right', [[0, 0, -0.6], [0.5, -0.2, 0.9]], [[-0.35, 0.3]]);
+  spareWheel(oddsRight, 0.95, 0.25, 1.5, 0.6); // lying almost flat
+  place(oddsRight, 6.6, 3.3, -0.3);
+
+  // cables snaking across the deck to the amps
+  const cableMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.6 });
+  for (const pts of [
+    [[-0.1, 1.6], [-1.2, 2.4], [-2.8, 2.1], [-4.4, 2.5], [-5.6, 1.9]],
+    [[-4.1, -0.5], [-4.6, 0.6], [-5.2, 1.2], [-5.6, 1.7]],
+    [[-1.35, 3.2], [-0.6, 2.7], [0.3, 2.9], [1.35, 3.2]],
+    [[6.0, 1.5], [4.6, 2.0], [3.2, 1.9], [2.6, 0.2], [2.4, -2.4]],
+    [[0.2, 1.4], [1.0, -0.6], [1.9, -1.9], [2.3, -2.5]],
+  ]) {
+    const curve = new THREE.CatmullRomCurve3(pts.map(([x, z]) => new THREE.Vector3(x, STAGE_TOP + 0.012, z)));
+    const cable = new THREE.Mesh(new THREE.TubeGeometry(curve, pts.length * 12, 0.012, 5), cableMat);
+    cable.receiveShadow = true;
+    scene.add(cable);
+  }
+
+  // ladder leaning back against the left rear tower
+  const ladder = movable('ladder', 'Ladder');
+  const alu = new THREE.MeshStandardMaterial({ color: 0xa8aaad, roughness: 0.4, metalness: 0.85 });
+  const rungs = new THREE.Group();
+  for (const x of [-0.22, 0.22]) part(new THREE.BoxGeometry(0.05, 3.6, 0.03), alu, x, 1.8, 0, rungs);
+  for (let i = 0; i < 11; i++) part(new THREE.CylinderGeometry(0.016, 0.016, 0.44).rotateZ(Math.PI / 2), alu, 0, 0.25 + i * 0.3, 0, rungs);
+  rungs.rotation.x = -0.27;
+  ladder.add(rungs);
+  place(ladder, -8.05, -2.6, 0.75);
+
+  // work lights on tripods, raking warm light across the tool wall and the qingqi
+  const workLights = [];
+  const yellow = new THREE.MeshStandardMaterial({ color: 0xc9a227, roughness: 0.5, metalness: 0.4 });
+  const lensMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.85, 0.6).multiplyScalar(3) });
+  for (const [x, z, target] of [[-3.0, -2.75, [-6.2, 1.8, -3.0]], [6.1, -2.4, [6.6, 1.5, 1.4]]]) {
+    const g = movable(`worklight-${x < 0 ? 'left' : 'right'}`, 'Work light');
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      part(new THREE.CylinderGeometry(0.012, 0.012, 1.7), metalDark, Math.cos(a) * 0.22, 0.8, Math.sin(a) * 0.22, g).rotation.set(Math.sin(a) * 0.27, 0, -Math.cos(a) * 0.27);
+    }
+    const head = new THREE.Group();
+    head.position.y = 1.65;
+    part(new THREE.BoxGeometry(0.3, 0.22, 0.12), yellow, 0, 0, 0, head);
+    const lens = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.16), lensMat);
+    lens.position.z = 0.061;
+    const glare = new THREE.Sprite(new THREE.SpriteMaterial({ map: flare, color: 0xffd7a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    glare.position.z = 0.1;
+    glare.scale.set(0.9, 0.9, 1);
+    head.add(lens, glare);
+    g.add(head);
+    place(g, x, z);
+    const aim = new THREE.Vector3(...target);
+    g.updateMatrixWorld(true);
+    head.lookAt(aim);
+    const spot = new THREE.SpotLight(0xffd7a0, 40, 9, 0.55, 0.6, 1.5);
+    spot.position.set(0, 1.65, 0);
+    spot.target.position.copy(g.worldToLocal(aim.clone()));
+    g.add(spot, spot.target);
+    workLights.push({ spot, glare });
+  }
+
+  // festoon bulbs draped along the front and back truss
+  const festoon = [];
+  for (const [z, sag] of [[TRUSS.front + 0.1, 0.9], [TRUSS.back + 0.25, 1.6]]) {
+    for (const [x0, x1] of [[-TRUSS.x, 0], [0, TRUSS.x]]) {
+      const n = Math.round((x1 - x0) / 0.42);
+      for (let i = 0; i <= n; i++) {
+        const u = i / n;
+        festoon.push(new THREE.Vector3(x0 + (x1 - x0) * u, TRUSS.y - 0.3 - sag * 4 * u * (1 - u), z));
+      }
+    }
+  }
+  const bulbs = new THREE.InstancedMesh(new THREE.SphereGeometry(0.045, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), festoon.length);
+  const warmBulb = new THREE.Color(1, 0.7, 0.38);
+  festoon.forEach((p, i) => {
+    bulbs.setMatrixAt(i, new THREE.Matrix4().makeTranslation(p.x, p.y, p.z));
+    bulbs.setColorAt(i, warmBulb.clone().multiplyScalar(1.6 + (i % 3) * 0.5));
+  });
+  scene.add(bulbs);
+  animated.push((t, o, levels) => {
+    for (const w of workLights) {
+      w.spot.intensity = 40 * o.worklights;
+      w.glare.material.opacity = Math.min(1, o.worklights);
+    }
+    bulbs.material.color.setScalar(o.festoon * (0.85 + Math.pow(levels.mid, 2) * 0.6 * o.reactivity));
+  });
+
+  // two crew hanging around: one perched on tyres behind the car, one by the tool chest
+  const crewOutfit = { Shirt: 0x2b3440, Pants: 0x22262c, Socks: 0x101010 };
+  const sitter = movable('crew-sitting', 'Crew');
+  const crewSeat = instancedPile(tyreGeo, rubber, [[[0, 0.11, 0], [0, 0.4, 0]], [[0, 0.33, 0], [0, 1.3, 0]]], 'crew-seat', 'Tyre seat');
+  delete crewSeat.userData.movable; // moves with the crew member
+  sitter.add(crewSeat, posePerson(gl.person, 'Man_Sitting', { outfit: crewOutfit }));
+  place(sitter, 2.9, -1.9, -0.6);
+  const leaner = movable('crew-standing', 'Crew');
+  leaner.add(posePerson(gl.person, 'Man_Idle', { outfit: crewOutfit }), trousers());
+  place(leaner, -6.75, -2.25, 0.7);
 
   return {
     update(t, dt, levels, o) {
-      for (const fn of animated) fn(t, o);
+      for (const fn of animated) fn(t, o, levels);
       bulbLight.intensity = 5 * o.fire;
     },
     apply() {},

@@ -4,10 +4,14 @@ Interactive 3D visualizations of two concert stage sets, built with three.js:
 
 - **Tarp box** — a tilted clear-tarp box with an LED-edged frame, two shipping containers
   (keys and drums), a yellow 80s coupe and a singer out front.
-- **MADE MEN** — a dark warehouse stage wrapped in loose plastic under a steel truss: a rusty
+- **MADE MEN** — a dark workshop stage wrapped in loose plastic under a steel truss: a rusty
   mustard car with flowers spilling from its open hood, a qingqi (chingchi) carrying the keys
-  player, a mechanic's tool wall and red tool chest, tyre mounds, fire barrels, a weathered
-  hanging sign and a ~250-person crowd.
+  player, a mechanic's tool wall and red tool chest, crates, amps, an engine block, work lights,
+  festoon bulbs, tyre mounds, fire barrels and a weathered hanging sign.
+
+Both stages can show a ~250-person audience (some filming on phones, some cheering) and can sit
+inside a lit warehouse with pallet racking, pendant lamps and sodium floodlights. Each has its own
+on/off toggle in the stage panel.
 
 Switch stages with the button top-left, or link straight to `?scene=tarp` / `?scene=mademen`.
 Walk the sets, rearrange props, and watch the lighting react to music — a built-in beat or a
@@ -77,9 +81,10 @@ detected automatically (build command `npm run build`, output directory `dist`).
 index.html              page shell, intro screen, stage switch, credits dialog
 public/models/          meshopt-compressed GLB models; mademen/ holds that stage's props
 src/main.js             engine: renderer, post-processing, shared controls; loads one stage
-src/engine/             shared: navigation, audio, model helpers, cloth plastic, fx, colour grade
+src/engine/             shared: navigation, audio, model helpers, cloth plastic, fx, colour grade,
+                        audience crowd, warehouse room
 src/scenes/tarp/        tarp box stage: set, props, settings
-src/scenes/mademen/     MADE MEN stage: warehouse, props, crowd, procedural materials
+src/scenes/mademen/     MADE MEN stage: rig and plastic, props, procedural materials
 ```
 
 ## Credits

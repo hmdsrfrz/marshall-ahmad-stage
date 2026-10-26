@@ -3,7 +3,8 @@ import { mulberry32 } from '../../engine/noise.js';
 import { glowTexture, smokeTexture, beamCone, aimAt } from '../../engine/fx.js';
 import { createTarpMaterial, hangPlasticWalls } from '../../engine/plastic.js';
 import { fit, shadows, eachMaterial, movable } from '../../engine/models.js';
-import { concreteMaterial, corrugatedMaterial, signTexture } from './materials.js';
+import { ROOM } from '../../engine/warehouse.js';
+import { concreteMaterial, signTexture } from './materials.js';
 
 export const STAGE = { w: 17, h: 1.0, d: 8, z: 0 };
 export const STAGE_TOP = STAGE.h;
@@ -12,7 +13,6 @@ export const STAGE_FRONT = STAGE.z + STAGE.d / 2;
 export const TRUSS = { y: 9, front: 3.4, back: -3.6, x: 9.2, size: 0.42 };
 // Pipe across the rig that the singer's mic hangs from.
 export const MIC_PIPE_Z = 1.45;
-const ROOM = { w: 38, h: 13, back: -9, front: 30 };
 
 // Box truss between two points as a single InstancedMesh of struts (4 chords + zig-zag lacing).
 function trussMembers(from, to, size, out) {
@@ -79,45 +79,12 @@ export function buildWarehouse(scene, gl, { quality }) {
   const movables = [];
   const steel = new THREE.MeshStandardMaterial({ color: 0x15181c, roughness: 0.45, metalness: 0.8 });
 
-  // --- room: concrete floor, corrugated steel walls, dark roof with beams
+  // --- concrete floor (walls, roof and house lights come from the shared warehouse room)
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w + 4, ROOM.front - ROOM.back + 4), concreteMaterial());
   floor.rotation.x = -Math.PI / 2;
   floor.position.z = (ROOM.front + ROOM.back) / 2;
   floor.receiveShadow = true;
   scene.add(floor);
-  const wallMat = corrugatedMaterial();
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), wallMat);
-  back.position.set(0, ROOM.h / 2, ROOM.back);
-  scene.add(back);
-  for (const sx of [-1, 1]) {
-    const side = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.front - ROOM.back, ROOM.h), wallMat);
-    side.rotation.y = -sx * Math.PI / 2;
-    side.position.set((sx * ROOM.w) / 2, ROOM.h / 2, (ROOM.front + ROOM.back) / 2);
-    scene.add(side);
-  }
-  const roof = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.front - ROOM.back), new THREE.MeshStandardMaterial({ color: 0x07090c, roughness: 1 }));
-  roof.rotation.x = Math.PI / 2;
-  roof.position.set(0, ROOM.h, (ROOM.front + ROOM.back) / 2);
-  scene.add(roof);
-  for (let z = ROOM.back + 3; z < ROOM.front; z += 6) {
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w, 0.5, 0.3), steel);
-    beam.position.set(0, ROOM.h - 0.3, z);
-    scene.add(beam);
-  }
-  // a few dim industrial pendants over the floor for depth (emissive only, no real lights)
-  const pendantMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.75, 0.45).multiplyScalar(2.2) });
-  const shade = new THREE.MeshStandardMaterial({ color: 0x0c0e10, metalness: 0.7, roughness: 0.5, side: THREE.DoubleSide });
-  for (const [x, z] of [[-9, 10], [0, 12], [9, 10], [-9, 20], [0, 22], [9, 20]]) {
-    const g = new THREE.Group();
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.3, 12, 1, true), shade);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), pendantMat);
-    bulb.position.y = -0.12;
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 2.5), steel);
-    cord.position.y = 1.35;
-    g.add(cone, bulb, cord);
-    g.position.set(x, ROOM.h - 3, z);
-    scene.add(g);
-  }
 
   // --- stage riser with diffused footlights under the lip
   const stage = new THREE.Group();
