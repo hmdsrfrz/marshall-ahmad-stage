@@ -481,11 +481,12 @@ export function buildProps(scene, gl, { add }) {
   for (const [id, at, count, radius, height, seed] of [
     ['tyres-front-left', [-9.3, 0, 5.7], 46, 1.6, 1.9, 3],
     ['tyres-front-right', [9.3, 0, 5.7], 42, 1.5, 1.7, 4],
+    ['tyres-side', [-10.4, 0, 0.4], 40, 1.3, 1.7, 6], // heaped against the left side of the riser
   ]) {
     const g = instancedPile(tyreGeo, rubber, mound(count, radius, height, seed), id, 'Tyre pile');
     g.position.set(...at);
     add(scene, g);
-    flowerSpots.push([at[0] + 0.1, height + 0.15, at[2]]);
+    flowerSpots.push([at[0] + 0.1, at[1] + height + 0.15, at[2]]);
   }
   // stacks along the back, a few with a tyre leaning against them
   const stacks = [];
