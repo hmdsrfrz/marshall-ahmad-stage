@@ -27,6 +27,13 @@ html, body { margin: 0; height: 100%; background: #050403; overflow: hidden; fon
 }
 #help b { color: #f6c56b; font-weight: 600; }
 
+#swap {
+  position: fixed; left: 16px; top: 16px; z-index: 5;
+  font: inherit; font-size: 13px; letter-spacing: 0.08em; padding: 8px 14px; cursor: pointer;
+  color: #f6c56b; background: rgba(10, 7, 4, 0.75); border: 1px solid rgba(246, 197, 107, 0.45); border-radius: 999px;
+}
+#swap:hover { background: #f6c56b; color: #120c05; }
+
 #credits {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20;
   width: min(520px, calc(100vw - 32px)); max-height: 80vh; overflow: auto;
@@ -39,3 +46,4 @@ html, body { margin: 0; height: 100%; background: #050403; overflow: hidden; fon
 #credits a { color: #f6c56b; }
 #credits .note { opacity: 0.6; font-size: 12px; }
 #credits .close { position: absolute; right: 10px; top: 6px; background: none; border: 0; color: inherit; font-size: 22px; cursor: pointer; }
+.intro-card .error { color: #ff8a7a; font-size: 13px; opacity: 0.85; max-width: min(560px, 90vw); margin: 1.2em auto 0; }

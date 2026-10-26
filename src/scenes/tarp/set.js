@@ -1,25 +1,12 @@
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-import { mulberry32 } from './noise.js';
-import { TarpSheet } from './tarp.js';
+import { mulberry32 } from '../../engine/noise.js';
+import { glowTexture, smokeTexture, beamCone, aimAt } from '../../engine/fx.js';
+import { createTarpMaterial, hangPlasticWalls } from '../../engine/plastic.js';
 
 export const BOX = { w: 16, h: 7.5, d: 10 };
 export const STAGE = { w: 14, h: 0.9, d: 8.5, z: -0.25 };
 export const STAGE_FRONT = STAGE.z + STAGE.d / 2;
-
-// Real film goes milky and reflective at grazing angles and nearly clear head-on.
-function addGrazingOpacity(mat) {
-  mat.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <opaque_fragment>',
-      `float tarpFres = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.5);
-      diffuseColor.a = mix(diffuseColor.a * 0.6, min(1.0, diffuseColor.a * 3.5 + 0.2), tarpFres);
-      #include <opaque_fragment>`,
-    );
-  };
-  mat.customProgramCacheKey = () => 'tarp-grazing';
-  return mat;
-}
 
 // Tall sheet gathered and tied at mid-height, like the bunched corners in the reference.
 function gatheredCurtain(w, h, seed) {
@@ -41,101 +28,6 @@ function gatheredCurtain(w, h, seed) {
   return g;
 }
 
-function crinkleTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
-  const x = c.getContext('2d');
-  x.fillStyle = '#808080';
-  x.fillRect(0, 0, 512, 512);
-  const r = mulberry32(42);
-  for (let i = 0; i < 260; i++) {
-    const v = Math.floor(80 + r() * 100);
-    x.strokeStyle = `rgba(${v},${v},${v},${0.25 + r() * 0.4})`;
-    x.lineWidth = 0.5 + r() * 2.5;
-    x.beginPath();
-    let px = r() * 512, py = r() * 512;
-    x.moveTo(px, py);
-    for (let k = 0; k < 4; k++) {
-      px += (r() - 0.5) * 140;
-      py += (r() - 0.5) * 140;
-      x.lineTo(px, py);
-    }
-    x.stroke();
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(3, 3);
-  return t;
-}
-
-export function glowTexture(inner = 'rgba(255,255,255,1)', soft = 0.5) {
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const x = c.getContext('2d');
-  const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
-  g.addColorStop(0, inner);
-  g.addColorStop(soft, 'rgba(255,255,255,0.25)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  x.fillStyle = g;
-  x.fillRect(0, 0, 256, 256);
-  return new THREE.CanvasTexture(c);
-}
-
-function smokeTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const x = c.getContext('2d');
-  const r = mulberry32(9);
-  for (let i = 0; i < 40; i++) {
-    const cx = 128 + (r() - 0.5) * 120, cy = 128 + (r() - 0.5) * 120, rad = 30 + r() * 70;
-    const g = x.createRadialGradient(cx, cy, 0, cx, cy, rad);
-    g.addColorStop(0, 'rgba(255,255,255,0.12)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g;
-    x.fillRect(0, 0, 256, 256);
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-// Additive cone used to fake a light shaft through haze. Apex at origin, opening along -Y.
-export function beamCone(length, radius, color) {
-  const geo = new THREE.CylinderGeometry(0.06, radius, length, 40, 1, true);
-  geo.translate(0, -length / 2, 0);
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { color: { value: new THREE.Color(color) }, intensity: { value: 1 }, len: { value: length } },
-    vertexShader: /* glsl */ `
-      varying float vY; varying vec3 vN; varying vec3 vV;
-      void main() {
-        vY = position.y;
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        vN = normalize(normalMatrix * normal);
-        vV = normalize(-mv.xyz);
-        gl_Position = projectionMatrix * mv;
-      }`,
-    fragmentShader: /* glsl */ `
-      uniform vec3 color; uniform float intensity; uniform float len;
-      varying float vY; varying vec3 vN; varying vec3 vV;
-      void main() {
-        float t = clamp(-vY / len, 0.0, 1.0);
-        float along = pow(1.0 - t, 1.6);
-        float rim = pow(abs(dot(vN, vV)), 1.5);
-        gl_FragColor = vec4(color * intensity * along * rim * 0.22, 1.0);
-      }`,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const m = new THREE.Mesh(geo, mat);
-  m.renderOrder = 10;
-  return m;
-}
-
-export function aimAt(obj, from, to) {
-  obj.position.copy(from);
-  const dir = to.clone().sub(from).normalize();
-  obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
-}
 
 export function buildSet(scene, renderer) {
   const api = {};
@@ -268,86 +160,19 @@ export function buildSet(scene, renderer) {
   pivot.add(box);
   scene.add(pivot);
 
-  const crinkle = crinkleTexture();
-  const tarpMat = new THREE.MeshPhysicalMaterial({
-    color: 0xf4f4f2,
-    roughness: 0.24,
-    metalness: 0.0,
-    ior: 1.5,
-    clearcoat: 0.4,
-    clearcoatRoughness: 0.08,
-    transparent: true,
-    opacity: 0.2,
-    bumpMap: crinkle,
-    bumpScale: 0.5,
-    flatShading: true,
-    envMapIntensity: 3,
-    emissive: 0x3a3a3c,
-    emissiveIntensity: 0.04,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
-  addGrazingOpacity(tarpMat);
-
+  const tarpMat = createTarpMaterial();
   const { w, h, d } = BOX;
-  // Walls are hung from overlapping strips of film, like a real install; where strips overlap the
-  // plastic doubles up into cloudier bands. Back and side walls get a second, inner layer whose seams
-  // sit half a strip over, so the bands cross. Every strip is cloth settled at load.
-  // `along` is the wall's local x axis in box space, `inward` points into the box.
-  const walls = [
-    { len: w, height: h, center: [0, h / 2, -d / 2], rot: [0, 0, 0], along: [1, 0, 0], inward: [0, 0, 1], layers: 2 },
-    { len: d, height: h, center: [-w / 2, h / 2, 0], rot: [0, Math.PI / 2, 0], along: [0, 0, -1], inward: [1, 0, 0], layers: 2 },
-    { len: d, height: h, center: [w / 2, h / 2, 0], rot: [0, -Math.PI / 2, 0], along: [0, 0, 1], inward: [-1, 0, 0], layers: 2 },
-    // roof pulled tight (almost no slack, no sag); its local +z points down after the rotation
-    { len: w, height: d, center: [0, h, 0], rot: [Math.PI / 2, 0, 0], along: [1, 0, 0], inward: [0, -1, 0], layers: 1, gravity: [0, 0, 0], slack: 0.002 },
-  ];
-  const STRIP = 4.6, OVERLAP = 0.8;
-  const panels = [];
-  let seed = 1;
-  for (const wall of walls) {
-    for (let layer = 0; layer < wall.layers; layer++) {
-      // inner layer starts half a strip in, so its seams fall between the outer layer's seams
-      const start = -wall.len / 2 + (layer ? -STRIP / 2 : 0);
-      for (let x0 = start; x0 < wall.len / 2 - 0.3; x0 += STRIP - OVERLAP) {
-        const a = Math.max(x0, -wall.len / 2), b = Math.min(x0 + STRIP, wall.len / 2);
-        if (b - a < 1) continue;
-        // alternate strips sit slightly proud of their neighbours so the overlaps don't z-fight
-        const depth = layer * 0.2 + (panels.length % 2) * 0.05;
-        const mid = (a + b) / 2;
-        panels.push({
-          w: b - a,
-          h: wall.height,
-          seed: seed++,
-          pos: wall.center.map((c, k) => c + wall.along[k] * mid + wall.inward[k] * depth),
-          rot: wall.rot,
-          gravity: wall.gravity,
-          slack: wall.slack,
-        });
-      }
-    }
-  }
-  const t0 = performance.now();
-  const worker = new Worker(new URL('./tarpWorker.js', import.meta.url), { type: 'module' });
-  const sheets = panels.map((p, id) => {
-    const options = { seed: p.seed, gravity: p.gravity, slack: p.slack };
-    const sheet = new TarpSheet(p.w, p.h, options);
-    worker.postMessage({ id, w: p.w, h: p.h, options });
-    const m = new THREE.Mesh(sheet.geometry, tarpMat);
-    m.position.set(...p.pos);
-    m.rotation.set(...p.rot);
-    m.renderOrder = 5;
-    box.add(m);
-    return sheet;
-  });
-  let pending = sheets.length;
-  worker.onmessage = ({ data }) => {
-    sheets[data.id].applySettled(data.pos, data.prev);
-    if (--pending === 0) {
-      console.info(`[tarp] settled ${sheets.length} sheets in ${(performance.now() - t0).toFixed(0)} ms`);
-      worker.terminate();
-    }
-  };
-  worker.onerror = (e) => console.error('[tarp] settle worker failed', e.message);
+  // back and side walls in two crossing layers; roof pulled tight (almost no slack, no sag),
+  // its local +z points down after the rotation
+  const plastic = hangPlasticWalls(
+    [
+      { len: w, height: h, center: [0, h / 2, -d / 2], rot: [0, 0, 0], along: [1, 0, 0], inward: [0, 0, 1], layers: 2 },
+      { len: d, height: h, center: [-w / 2, h / 2, 0], rot: [0, Math.PI / 2, 0], along: [0, 0, -1], inward: [1, 0, 0], layers: 2 },
+      { len: d, height: h, center: [w / 2, h / 2, 0], rot: [0, -Math.PI / 2, 0], along: [0, 0, 1], inward: [-1, 0, 0], layers: 2 },
+      { len: w, height: d, center: [0, h, 0], rot: [Math.PI / 2, 0, 0], along: [1, 0, 0], inward: [0, -1, 0], gravity: [0, 0, 0], slack: 0.002 },
+    ],
+    { material: tarpMat, parent: box },
+  );
   for (const sx of [-1, 1]) {
     const c = new THREE.Mesh(gatheredCurtain(2.4, h, sx > 0 ? 11 : 12), tarpMat);
     c.position.set(sx * (w / 2 - 1.0), h / 2, d / 2 - 0.5);
@@ -448,7 +273,7 @@ export function buildSet(scene, renderer) {
       s.position.y = u.base.y + Math.sin(t * u.speed * 0.7 + u.phase * 2) * 0.4;
       s.material.rotation += u.rot * 0.016;
     }
-    if (opts.tarpSway) for (const s of sheets) if (s.settled) s.step(t, 0.3);
+    if (opts.tarpSway) plastic.sway(t, 0.3);
     hazeGroup.visible = opts.haze > 0;
     for (const s of puffs) s.material.opacity = Math.min(0.5, opts.haze * (0.03 + (s.userData.phase % 1) * 0.04));
   };

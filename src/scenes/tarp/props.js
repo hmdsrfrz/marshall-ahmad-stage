@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { STAGE, STAGE_FRONT, BOX, beamCone, aimAt, glowTexture } from './set.js';
+import { loadModels, fit, shadows, eachMaterial, movable, movableRegistry, posePerson } from '../../engine/models.js';
+import { STAGE, STAGE_FRONT, BOX } from './set.js';
+import { beamCone, aimAt, glowTexture } from '../../engine/fx.js';
 
 export const CREDITS = [
   { name: 'Car', author: 'Quaternius', id: 'HQ0hvRM2XR', license: 'CC-BY 3.0' },
@@ -17,99 +17,12 @@ export const CREDITS = [
   { name: 'Man', author: 'Quaternius', id: 'HMnuH5geEG', license: 'CC0' },
 ];
 
-const loader = new GLTFLoader();
-const _box = new THREE.Box3();
-const _v = new THREE.Vector3();
-
-// Wraps a model so that it is scaled to `size` along `axis`, centred on x/z and resting on y=0.
-function fit(object, { size, axis = 'y', rot, longAxis }) {
-  const wrap = new THREE.Group();
-  wrap.add(object);
-  if (rot) object.rotation.set(...rot);
-  wrap.updateMatrixWorld(true);
-  let s = _box.setFromObject(object, true).getSize(new THREE.Vector3());
-  if (longAxis === 'z' && s.x > s.z) object.rotation.y += Math.PI / 2;
-  if (longAxis === 'x' && s.z > s.x) object.rotation.y += Math.PI / 2;
-  wrap.updateMatrixWorld(true);
-  s = _box.setFromObject(object, true).getSize(new THREE.Vector3());
-  const ref = axis === 'max' ? Math.max(s.x, s.y, s.z) : s[axis];
-  object.scale.multiplyScalar(size / ref);
-  wrap.updateMatrixWorld(true);
-  _box.setFromObject(object, true);
-  const c = _box.getCenter(_v);
-  object.position.x -= c.x;
-  object.position.z -= c.z;
-  object.position.y -= _box.min.y;
-  return wrap;
-}
-
-function shadows(obj, cast = true, receive = true) {
-  obj.traverse((o) => {
-    if (o.isMesh) {
-      o.castShadow = cast;
-      o.receiveShadow = receive;
-    }
-  });
-  return obj;
-}
-
-function eachMaterial(obj, fn) {
-  obj.traverse((o) => {
-    if (!o.isMesh) return;
-    const swap = (m) => {
-      const c = m.clone();
-      const r = fn(c);
-      return r?.isMaterial ? r : c;
-    };
-    o.material = Array.isArray(o.material) ? o.material.map(swap) : swap(o.material);
-  });
-}
-
-function movable(id, label, obj) {
-  const g = obj ?? new THREE.Group();
-  g.userData.movable = { id, label };
-  return g;
-}
-
-function posePerson(gltf, clipName, height = 1.78) {
-  const model = SkeletonUtils.clone(gltf.scene);
-  const mixer = new THREE.AnimationMixer(model);
-  const at = (name, end) => {
-    mixer.stopAllAction();
-    const clip = gltf.animations.find((a) => a.name.endsWith(name));
-    const action = mixer.clipAction(clip);
-    action.play();
-    action.time = end ? clip.duration * 0.98 : 0;
-    mixer.update(0);
-  };
-  at('Man_Idle');
-  const wrapped = fit(model, { size: height });
-  if (clipName !== 'Man_Idle') {
-    at(clipName, true);
-    wrapped.updateMatrixWorld(true);
-    _box.setFromObject(model, true);
-    model.position.y -= _box.min.y;
-  }
-  // dark stage clothes, as in the reference
-  const outfit = { Shirt: 0x1d1d1f, Pants: 0x161616, Socks: 0x222222 };
-  eachMaterial(model, (m) => {
-    if (outfit[m.name]) m.color.set(outfit[m.name]);
-    m.roughness = 0.8;
-  });
-  return shadows(wrapped);
-}
-
 export async function buildProps(scene, set) {
   const names = ['car', 'container', 'drums', 'keyboard', 'micstand', 'monitor', 'movinghead', 'parcan', 'debris', 'rocks', 'person'];
-  const gl = Object.fromEntries(await Promise.all(names.map(async (n) => [n, await loader.loadAsync(`./models/${n}.glb`)])));
+  const gl = await loadModels(Object.fromEntries(names.map((n) => [n, `${n}.glb`])));
 
   const movables = [];
-  const add = (parent, obj) => {
-    parent.add(obj);
-    movables.push(obj);
-    obj.userData.defaults = { p: obj.position.clone(), q: obj.quaternion.clone(), s: obj.scale.clone() };
-    return obj;
-  };
+  const add = movableRegistry(movables);
   const amber = new THREE.Color(1, 0.55, 0.12);
   const containers = [];
   const movingHeads = [];
@@ -120,7 +33,7 @@ export async function buildProps(scene, set) {
   for (const side of [-1, 1]) {
     const g = movable(`container-${side < 0 ? 'left' : 'right'}`, side < 0 ? 'Keys container' : 'Drum container');
     const body = fit(gl.container.scene.clone(), { size: C.h, longAxis: 'z' });
-    const s = _box.setFromObject(body, true).getSize(new THREE.Vector3());
+    const s = new THREE.Box3().setFromObject(body, true).getSize(new THREE.Vector3());
     body.scale.set(C.w / s.x, 1, C.d / s.z);
     const plane = new THREE.Plane();
     eachMaterial(body, (m) => {

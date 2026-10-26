@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
-const LAYOUT_KEY = 'stageviz.layout.v3';
 
 const HELP = {
   orbit:
@@ -13,7 +12,8 @@ const HELP = {
   walk: '<b>Walk</b> · <b>WASD</b> move · mouse look · <b>Shift</b> run · <b>Q/E</b> down/up · <b>Tab</b> or <b>Esc</b> back to orbit',
 };
 
-export function createNavigation({ camera, renderer, scene, movables, helpEl }) {
+// layoutKey: localStorage key for this scene's prop arrangement.
+export function createNavigation({ camera, renderer, scene, movables, helpEl, layoutKey }) {
   const dom = renderer.domElement;
   const orbit = new OrbitControls(camera, dom);
   orbit.target.set(0, 2.4, 0);
@@ -122,13 +122,13 @@ export function createNavigation({ camera, renderer, scene, movables, helpEl }) 
     const data = {};
     for (const m of movables) data[m.userData.movable.id] = { p: m.position.toArray(), q: m.quaternion.toArray() };
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify(data));
+      localStorage.setItem(layoutKey, JSON.stringify(data));
     } catch {}
   }
   function loadLayout() {
     let data;
     try {
-      data = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+      data = JSON.parse(localStorage.getItem(layoutKey) || 'null');
     } catch {}
     if (!data) return;
     for (const m of movables) {
@@ -144,7 +144,7 @@ export function createNavigation({ camera, renderer, scene, movables, helpEl }) 
       m.quaternion.copy(m.userData.defaults.q);
     }
     try {
-      localStorage.removeItem(LAYOUT_KEY);
+      localStorage.removeItem(layoutKey);
     } catch {}
     select(null);
   }

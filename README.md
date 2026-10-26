@@ -1,11 +1,21 @@
 # Marshall Ahmad — Concert Stage Visualization
 
-An interactive 3D visualization of a concert stage set, built with three.js. A tilted
-clear-tarp box with LED-edged frame encloses a stage with two shipping containers
-(keys and drums), a yellow 80s coupe, and a singer out front. Walk the set, rearrange
-props, and watch the lighting react to music — a built-in beat or a song you load.
+Interactive 3D visualizations of two concert stage sets, built with three.js:
 
-![Rendered stage](docs/screenshot.png)
+- **Tarp box** — a tilted clear-tarp box with an LED-edged frame, two shipping containers
+  (keys and drums), a yellow 80s coupe and a singer out front.
+- **MADE MEN** — a dark warehouse stage wrapped in loose plastic under a steel truss: a rusty
+  mustard car with flowers spilling from its open hood, a qingqi (chingchi) carrying the keys
+  player, a mechanic's tool wall and red tool chest, tyre mounds, fire barrels, a weathered
+  hanging sign and a ~250-person crowd.
+
+Switch stages with the button top-left, or link straight to `?scene=tarp` / `?scene=mademen`.
+Walk the sets, rearrange props, and watch the lighting react to music — a built-in beat or a
+song you load.
+
+![Tarp box stage](docs/screenshot.png)
+
+![MADE MEN stage](docs/screenshot-mademen.png)
 
 Reference the design was based on:
 
@@ -64,19 +74,15 @@ detected automatically (build command `npm run build`, output directory `dist`).
 ## Project structure
 
 ```
-index.html          page shell, intro screen, credits dialog
-public/models/      downloaded GLB models (see credits)
-src/main.js         renderer, post-processing, control panel, render loop
-src/set.js          tarp box, stage riser, floor reflection, haze, backlight
-src/tarp.js         Verlet cloth sheet for the plastic tarp strips
-src/tarpWorker.js   settles tarp sheets off the main thread
-src/noise.js        seeded random + noise helpers
-src/props.js        model loading/fitting, containers, car, performers, light rig
-src/navigation.js   orbit / walk / transform controls, layout persistence
-src/audio.js        synthesized beat, song playback, frequency analysis
+index.html              page shell, intro screen, stage switch, credits dialog
+public/models/          meshopt-compressed GLB models; mademen/ holds that stage's props
+src/main.js             engine: renderer, post-processing, shared controls; loads one stage
+src/engine/             shared: navigation, audio, model helpers, cloth plastic, fx, colour grade
+src/scenes/tarp/        tarp box stage: set, props, settings
+src/scenes/mademen/     MADE MEN stage: warehouse, props, crowd, procedural materials
 ```
 
 ## Credits
 
 3D models from [Poly Pizza](https://poly.pizza) under CC0 and CC-BY 3.0 — full
-attribution is listed in the in-app **Model credits** panel and in `src/props.js`.
+attribution is listed in each stage's in-app **Model credits** panel.
