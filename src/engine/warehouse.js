@@ -38,10 +38,13 @@ function wallWashTexture() {
  * hanging pendants over the audience and sodium floodlights on the walls. The floor stays with each
  * stage. Returns { group, update(), apply({ warehouse, warehouseLights }) }.
  */
-export function buildWarehouseRoom(scene) {
+export function buildWarehouseRoom(scene, { renderer, camera }) {
   const { w, h, back, front } = ROOM;
   const group = new THREE.Group();
   group.name = 'warehouse';
+  // The real lights stay in the scene and are dimmed to 0 when the room is hidden: changing the
+  // number of lights recompiles every material in the scene, which froze the page for seconds.
+  const lights = new THREE.Group();
   const steel = new THREE.MeshStandardMaterial({ color: 0x15181c, roughness: 0.45, metalness: 0.8 });
   const r = mulberry32(41);
   const glow = glowTexture('rgba(255,255,255,1)', 0.3);
@@ -137,7 +140,7 @@ export function buildWarehouseRoom(scene) {
     if (real) {
       light = new THREE.PointLight(warm, 60, 18, 1.3);
       light.position.set(x, pendantY - 0.4, z);
-      group.add(light);
+      lights.add(light);
     }
     pendants.push({ halo, beam, light });
   }
@@ -169,7 +172,7 @@ export function buildWarehouseRoom(scene) {
     }
     const fill = new THREE.PointLight(sodium, 50, 20, 1.4);
     fill.position.set(sx * (w / 2 - 2), 7.5, 11);
-    group.add(fill);
+    lights.add(fill);
     floods.push({ light: fill });
   }
 
@@ -180,17 +183,18 @@ export function buildWarehouseRoom(scene) {
     group.add(sign);
   }
 
-  scene.add(group);
-  let o = { warehouseLights: 1 };
+  scene.add(group, lights);
+  // compile the room's shaders now, while loading, so the first time it's shown doesn't stall
+  renderer.compile(group, camera, scene);
+  let o = { warehouse: true, warehouseLights: 1 };
   return {
     group,
     update() {
-      if (!group.visible) return;
-      const k = o.warehouseLights;
+      const k = o.warehouse ? o.warehouseLights : 0;
       for (const p of pendants) {
+        if (p.light) p.light.intensity = 60 * k;
         p.halo.material.opacity = 0.5 * Math.min(k, 1.5);
         p.beam.material.uniforms.intensity.value = 0.14 * k;
-        if (p.light) p.light.intensity = 60 * k;
       }
       poolMat.opacity = 0.3 * Math.min(k, 2);
       for (const f of floods) {

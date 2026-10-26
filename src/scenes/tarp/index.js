@@ -31,14 +31,14 @@ export default {
     exposure: 0.85,
   },
 
-  async build({ scene, renderer, bloom, quality }) {
+  async build({ scene, renderer, camera, bloom, quality }) {
     scene.background = new THREE.Color(0x040404);
     scene.fog = new THREE.FogExp2(0x080808, 0.012);
     scene.add(new THREE.HemisphereLight(0x5a5a5e, 0x080808, 0.2));
 
     const set = buildSet(scene, renderer);
     const props = await buildProps(scene, set);
-    const room = buildWarehouseRoom(scene);
+    const room = buildWarehouseRoom(scene, { renderer, camera });
     const crowd = buildCrowd(scene, { count: quality === 'high' ? 220 : 120, area: { x: [-11, 11], z: [6.8, 19] }, rim: 0xd8dcff, seed: 8 });
     const opts = { containerColor: new THREE.Color() };
 

@@ -80,7 +80,7 @@ export default {
     vignette: 0.45,
   },
 
-  async build({ scene, renderer, bloom, grade, quality }) {
+  async build({ scene, renderer, camera, bloom, grade, quality }) {
     scene.background = new THREE.Color(0x05080c);
     scene.fog = new THREE.FogExp2(0x0a1820, 0.022);
     scene.add(new THREE.HemisphereLight(0x2e5466, 0x060708, 0.6));
@@ -92,7 +92,7 @@ export default {
     const house = buildWarehouse(scene, gl, { quality });
     for (const m of house.movables) add(m.parent, m);
     const props = buildProps(scene, gl, { add });
-    const room = buildWarehouseRoom(scene);
+    const room = buildWarehouseRoom(scene, { renderer, camera });
     const crowd = buildCrowd(scene, { count: quality === 'high' ? 250 : 140, keepClear: [[-9.3, 5.7, 2.5], [9.3, 5.7, 2.4]] });
     const opts = {};
 
